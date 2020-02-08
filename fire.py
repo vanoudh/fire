@@ -4,6 +4,7 @@
 
 from subprocess import call
 from collections import defaultdict
+from sagemaker.session import Session
 import sagemaker
 import io
 import json
@@ -12,6 +13,7 @@ import boto3
 import time
 import sys
 import os
+import argparse
 
 
 FIRE_PATH = '.fire'
@@ -75,13 +77,14 @@ def make_manifest_input(bucket, key, manifest):
     return s3_input
 
 
-nargs = len(sys.argv) - 1
-if nargs not in [1, 2]:
-    print(f'usage: {sys.argv[0]} notebook.ipynb [--dryrun]')
-    exit(1)
-    
-notebook_path = sys.argv[1]
-dryrun = nargs == 2
+parser = argparse.ArgumentParser(description='SageMaker notebook runner')
+parser.add_argument('notebook_path', type=str, nargs=1, help='notebook to run')
+parser.add_argument('--dryrun', default=False, action='store_true', help='prepare the job but do not send it')
+args = parser.parse_args()
+#print(args)
+
+notebook_path = args.notebook_path[0]
+dryrun = args.dryrun
 
 filename = notebook_path.split('.')[0]
 script_path = os.path.join(FIRE_PATH, filename + '.py')
@@ -134,7 +137,8 @@ estimator = Constructor(entry_point=filename + '_fire.py',
 bucket = info['bucket'][0]
 manifest = [{'prefix': f's3://{bucket}/'}] + info['keys']
 
-input_obj = make_manifest_input(bucket, f'fire-manifests/{time.time()}.json', manifest)
+default_bucket = Session().default_bucket()
+input_obj = make_manifest_input(default_bucket, f'fire-manifests/{time.time()}.json', manifest)
 
 if dryrun:
     print('\nExiting (--dryrun)\n')

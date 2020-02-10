@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 # coding: utf-8
 
+# Author: Marc van Oudheusden
+# https://github.com/vanoudh/fire
+
 
 from subprocess import call
 from collections import defaultdict
@@ -32,7 +35,7 @@ def process_line(line, info):
         return f"{name} = '/opt/ml/input/data/training/{key}'\n"
     if '#fire-insert' in line:
         index = line.find('#fire-insert')
-        return line[len('#fire-insert'):].strip()
+        return line[len('#fire-insert'):].strip() + '\n'
     if '#fire-' in line:
         tokens = split(line)
         _, name = split(tokens[0], '-')
@@ -108,7 +111,7 @@ with open(script_path, 'r') as f:
                 raise e
             if line_out:
                 fout.write(line_out)
-                print(line_out)
+                print(line_out, end='')
             line = f.readline()
 
 print('\nJob parameters:\n')

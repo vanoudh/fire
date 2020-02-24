@@ -134,6 +134,7 @@ estimator = Constructor(entry_point=filename + '_fire.py',
                         role=sagemaker.get_execution_role(),
                         train_instance_count=1, 
                         train_instance_type=info['instance'][0],
+                        train_volume_size=30 if len(info['storage']) == 0 else int(info['storage'][0]),
                         framework_version=version
                         )
 
